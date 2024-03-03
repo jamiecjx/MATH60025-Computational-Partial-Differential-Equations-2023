@@ -1,0 +1,352 @@
+\documentclass{article}
+
+\usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath} % useful
+\usepackage{amsfonts} % fonts like \mathbb{R} among others
+\usepackage{amssymb}
+\usepackage{amsthm} % used for writing lemmas/theorems/etc
+\usepackage{tikz} % for visual tools
+\usepackage{authblk}
+\usepackage{enumitem}
+\numberwithin{equation}{section}
+\usepackage[margin=1in]{geometry}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{remark}{Remark}[theorem]
+
+\title{MATH60025 Computational PDEs}
+\author{Lectured by Dr Shahid Mughal\\
+Spring 2023\\
+Transcribed by a muppet from Sesame Street
+}
+\date{}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\pr}{\mathbb{P}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\dm}{\mathrm{d}}
+
+\newcommand{\mc}[1]{\mathcal{#1}}
+\newcommand{\pspace}{(\Omega, \mathcal{F}, \mathbb{P})}
+
+\newcommand{\sm}{\setminus}
+
+\newcommand{\ie}{\textit{i}.\textit{e}.}
+\newcommand{\eg}{\textit{e}.\textit{g}.}
+
+\newcommand{\dd}[2]{\frac{\mathrm{d} #1}{\mathrm{d} #2}}
+\newcommand{\ddn}[3]{\frac{\mathrm{d}^{#3} #1}{\mathrm{d}^{#3} #2}}
+\newcommand{\pp}[2]{\frac{\partial #1}{\partial #2}}
+
+
+\begin{document}
+
+\maketitle
+
+
+\section{Info}
+Office Hours: HXLY 734
+
+LeVeque, Randall J., Finite difference methods for ordinary and partial differential equations: steady-state and time-dependent problems.
+
+Smith, G.D., Numerical solution of partial differential equations: Finite difference methods.
+
+Contents:
+\begin{itemize}
+    \item Introduction: How can we solve PDEs on a computer? Finite Difference Methods. Basic types of PDEs. Well-posedness and the importance of Boundary Conditions.
+    \item Parabolic equations: Explicit and Implicit Schemes. Maximum principle and analysis.
+    \item Elliptic equations: Iterative methods: How can they be made faster? Jacobi, Gauss-Seidel, relaxation techniques. Multigrid methods and motivation and implementation.
+    \item Hyperbolic equations: characteristics, upwinding, Lex-Wendroff schemes. Non-reflecting boundary conditions, perfectly matched layers.
+    \item Combinations, Extensions and Applications: \eg advection/diffusion and Navier-Stokes
+\end{itemize}
+
+\section{Brief motivation}
+
+Wave equation: $u$ is a function of $x$ and $t$. The notation $u_t$ denotes the partial derivative with respect to $t$ whilst holding all other variables (in this case, $x$) constant. $c$ is a fixed real constant, known as the wave speed. If it's positive, information progresses in a certain direction over time. If it's negative, it goes in the other direction. 
+\begin{equation}
+    u_t + cu_x = 0
+\end{equation}
+There's also a second order form:
+\begin{equation}
+    u_{tt} - c^2 u_{xx} = 0
+\end{equation}
+This represents data that can propogate in both directions at the same time.
+Or in higher dimensions:
+\begin{equation}
+    u_{tt} - c^2 \nabla^2u = 0
+\end{equation}
+
+Burgers equation:
+\begin{equation}
+    u_t + cuu_x = 0
+\end{equation}
+and its viscous counterpart. The new term is known as a diffusion or viscosity term. The equation represents a sort of competition between the shock term $cuu_x$ and the smoothing term $vu_{xx}$.
+\begin{equation}
+    u_t + cuu_x = vu_{xx}
+\end{equation}
+Recall that this equation has some interesting behaviour: it can generate discontinuities, or shocks.
+Diffusion/heat equation. $\kappa$ represents the thermal conductivity. Again, we may generalise this equation to higher dimensions by replacing the $u_{xx}$ term with the laplacian:
+\begin{equation}
+    u_t = \kappa u_{xx}
+\end{equation}
+\begin{equation}
+    u_t = \kappa \nabla^2u
+\end{equation}
+
+Laplace/Poisson equation:
+\begin{equation}
+    \nabla^2u = 0
+\end{equation}
+\begin{equation}
+    \nabla^2u = f
+\end{equation}
+Laplace's equation is a special case of Poisson's equation, when the inhomogenous term $f$ is equal to zero.
+
+Maxwell's equations: electromagnetism:
+\begin{align}
+    \nabla \cdot 
+\end{align}
+
+Black-Scholes Model (Finance):
+
+
+Navier-Stokes Equations:
+no, absolutely not.
+
+
+\subsection{Finite differences in 1D and 2D and so on}
+
+Lets suppose we want a function on an interval $[a,b]$. Well too bad. We're on a computer so we can only get a set of points, with a discretisation of gap $h$ = $\frac{b-a}{N-1}$ between points.
+
+In a 2D and so on, we approximate on a mesh of some kind.
+
+Now that we have a finite approximation, what are the derivatives?
+\begin{align}
+    \dd{u}{x}, \pp{u}{x_1} \\
+    1
+\end{align}
+
+Well, we are going to use finite differences.
+Just truncate the definition of the derivative with a small, finite $h$ instead.
+Could be forward finite difference, backward finite difference, central finite difference.
+
+
+How to derive those formulas? Just use the Taylor series.
+
+\begin{definition}
+    Forward difference: $\Delta x_n$ = $x_{n+1}-x{n}$ \\
+    Backward difference: $\nabla x_n$ = $x_n - x{n-1}$ \\
+    Averaging operator: $\mu x_n = \frac 12 (x_{n+\frac 12} + x_{n-\frac 12}$) \\
+    Central difference: \\
+    Central difference: 
+\end{definition}
+You can do the same thing with 2nd order derivatives, etc. Have fun.
+
+
+Alternatively, use the method of undetermined coefficients.
+
+
+Solve $u_x = u x>0$ and $u(0)$ with finite difference.
+
+
+
+\section{2 points}
+2 point formulae:
+Forward Difference: order $h$ accuracy.
+Backward Difference: order $h$ accuracy as well.
+Central difference: order $h^2$ accuracy.
+
+Second order: $[1,-2,1]$ order $h^2$ accuracy.
+
+
+
+Finite differences formula via Lagrange interpolation:
+1: interpolation of the data point by a polynomial of appropriate degree
+
+2:Exact differentiation of the polynomial interpolant and
+3: Evaluation of the differentiated interpolant at the desired grid point.
+
+\section{boundary condition stuff}
+
+
+Types of boundary conditions (again):
+Dirichlet boundary condition: $u(x) = a$
+also known as setting the value of $u$ at the boundary.
+Neumann boundary condition: $\dd{u}{n} = a$
+also known as setting the value of the normal derivative. In one dimension, this is just $\dd{u}{x}$.
+Robin/Mixed boundary condition: could be $\dd{u}{x} + \gamma u = g$. Mixture, as it literally says.
+
+
+\section{Finite partial derivatives}
+We have a grid instead of a set of points.
+(image to be drawn :D)
+Discretise:
+\begin{equation}
+    \frac{\partial^2 }{\partial x \partial y}= \pp{}{x} \pp{}{y}
+\end{equation}
+And individually replace the new partial derivatives with their 1D approximations to get the result.
+
+\section{Classification of $2$nd order Quasi-linear PDEs in 2 variables}
+
+There are 3 main categories of problems:
+\begin{itemize}
+    \item Equilibrium - BVP
+    \item Eigenvalue (not covered in this course)
+    \item Propogation - IVP
+\end{itemize}
+For example, an equilibrium problem could be solving the Poisson equation in some domain $D$. We would then specify the conditions on the outer boundary \eg $u = g$ on $\partial D$. In more complicated problems, you could specify the normal derivative on the boundary instead (recall Dirichlet and Neumann conditions).
+
+If the domain $D$ is bounded, this is called an interior problem. There are also ones in unbounded domains, which is generally much harder to deal with.
+
+Boundary value problems are generally \textbf{Elliptic PDEs}.
+
+In contrast, a propogation problem are generally initial value problems, where you specify some initial state and have some constraints along the way.
+
+
+Comparison: if you change a bit of the boundary condition in an Elliptic PDE, the change is felt instantly everywhere inside of the domain. In constrast, if you change a bit of the initial data, the change isn't felt until some time when the information has time to travel.
+
+There are two classes of propogation problems: \textbf{Parabolic and Hyperbolic PDEs}.
+
+\subsection{Well-posedness of PDEs}
+Solution exists, solution is unique, solution function varies continuously based on the initial data.
+
+\subsection{wt}
+Basic first order PDE
+\begin{equation}
+    \alpha u_x + \beta u_y = g(x,y)
+\end{equation}
+First order PDE.
+
+\begin{equation}
+    u_{xx}-u_{yy}+bu_x+cu_y = g(x,y,u)
+\end{equation}
+Second order PDE.
+
+Semilinear, Quasilinear, aaaaaaaaaaa
+etc. etc. etc.
+
+Consider a general second order PDE
+\begin{equation}
+    au_{xx} + bu_{xy}+c_{yy} = f
+\end{equation}
+where
+\begin{equation}
+    f = du_x+eu_y+hu+g
+\end{equation}
+the $abc$ are functions of $x,y,u,u_x,u_y$ so that we remain at least quasilinear.
+
+Suppose we know $u,u_x,u_y$ along some curve in $xy$ space. Then from a point $p$ we move a small vector displacement $dx,dy$. Can we continue the solution to the new point $q$?
+
+\begin{align}
+    du = u_x dx + u_y dy \\
+    d(u_x) = u_{xx} dx + u_{xy} dy \\
+    d(u_y) = u_{xy} dx + u_{yy} dy
+\end{align}
+
+Along with the PDE, we end up with 3 equations which can be solved in a matrix form. You end up with
+\begin{equation}
+    \dd{y}{x} = \frac{b \pm \sqrt{b^2-4ac}}{2a}
+\end{equation}
+\textbf{Be careful:} the sign of $b$ is not $-b$ as in the usual quadratic formula!
+If there are 2 real roots, it is hyperbolic. If there is 1 root, it is parabolic. Else if there is no real roots it is elliptic.
+
+
+
+\section{Heat Equation}
+\begin{equation}
+    u_t = u_{xx}
+\end{equation}
+Explicit method: initial value problem.
+\begin{equation}
+    u_{n}^{i+1} = ru_{n-1}^i + (1-2r) u_{n}^i + ru_{n+1}^i
+\end{equation}
+Maximum principle Analysis: $O(k)$, $O(h^2)$. A log graph of the errors should be a linear line, with a slope of $1$. If you kept the timestep fixed but reduced the spatial errors, the linear line would have slope $2$.
+
+Fourier Stability Analysis: $r \leq \frac12$.
+
+Let's solve a 3D problem now.
+
+\begin{equation}
+    u_t = u_{xx} + u_{yy}
+\end{equation}
+Your 100 data points in $x$, and 100 data points in $y$ becomes 10000 points which you have to march in time. It gets worse with more dimensions, but still within reachability. Still limited by $r \le \frac 12$.
+
+\subsection{Implicit Method}
+Approximate $u_t \approx \frac{u_n^{i+1} - u_n^i}{k}$. $u_{xx} \approx \frac{u_{n-1}^{i+1} - 2u_n^{i+1} + u_{n+1}^{i+1}}{h^2}$. This is $O(k), O(h^2)$.
+
+Scheme 2: we can keep $u_t$ as before but change $u_{xx}$ to be the average of the finite difference between the explicit and implicit methods. Effectively the midpoint of the solution. Since the scheme. This is $O(k^2), O(h^2)$, called the theta method, where $\theta = \frac 12$. We can change $\theta=0$, which is the explicit method, and $\theta = 1$ which is the implicit scheme described before. (Technically speaking, theta method is an implicit scheme, since it contains a bit of the future terms.)
+
+\section{Nonlinear BVP equation}
+\begin{equation}
+    u_t = u_{xx} + f(u)
+\end{equation}
+\begin{itemize}
+    \item Explicit approach: 
+    \begin{equation}
+        \frac{u^{j+1}_n - u^j_n}{k} = \frac{u^j_{n+1}-2u^j_n+u^j_{n-1}}{h^2} + f(u^j_n)
+    \end{equation}
+    with $r \leq \frac 12$.
+    \item $\theta = \frac 12$
+    \begin{equation}
+        u^{j+1}_n - u^j_n = \frac 12 r \left( s^2u^j_n + s^2u^{j+1}_n\right) + \frac 12 k \left(f(u^j_n) + f(u^{j+1}_n)\right)
+    \end{equation}
+    nonlinear terms $f$ can be approximated with taylor series, which has linearised it.
+\end{itemize}
+
+Boundary conditions:
+Dirichlet conditions: impose values on field.
+Neumann conditions: impoves values of normal derivative instead.
+Periodic conditions suppose you have a PDE on an interval $[a,b]$. The periodic condition is $u(a) = u(b)$ and $u_x(a) = u_x(b)$ matching derivatives as well. How to do this?
+
+If we discretise, name the points $u[1]$ and $u[n]$. Then $u[1] = u[n]$. We also have $u[2] = u[n+1]$ even though point $n+1$ doesn't actually exist. Similarly $u[-1] = u[n-1]$.
+Once we have this, we can impose the finite difference on either side to be the same to impose the second boundary condition.
+
+\section{Multigrid Methods}
+We wish to solve $A_F u_F = b_F$ on a fine grid, and we have a coarse grid with half the points on each axis at our disposal.
+\begin{itemize}
+    \item Gauss-Seidel sweeps on $F$ to get rid of the short waves, obtaining an approximation $u_F$.
+    \item Calculate the residual $r_F = A_F u_F - b_F$
+    \item transfer to the coarse grid $C$ using a restriction operator to find $r_C$.
+    \item On the coarse grid, we calculate the error $z_C$ where $A_C z_C = r_C$ quickly since it's coarse.
+    \item Interpolate this back into $z_F$
+    \item modify the fine estimate by taking the new estimate as $u_F + z_F$
+    \item repeat. This new iteration will have a few short wave errors, which will be filtered out by the first step.
+\end{itemize}
+
+\section{Hyperbolic PDEs}
+Fourier mode:
+\begin{equation}
+    u_k^n = \hat{u} e^{i(n\omega \Delta t + \alpha k \Delta x)}
+\end{equation}
+
+
+
+\section{Systems of PDEs}
+Let us have a matrix $A$ which is constant, and consider the PDE
+\begin{equation}
+    u_t + Au_x = 0
+\end{equation}We
+'d like to generalise the upwinding method to this problem. Diagonalise $A$ into a form $A = SDS^{-1}$.
+
+Then let us have $u = Sv$. Thus $v$ satisfies
+
+\begin{equation}
+    (v_i)_t + \lambda_i (v_i)_x = (S^{-1} * \mathbf{d})_i
+\end{equation}
+
+
+\section{Lax-Wendroff method}
+Recall that
+\begin{equation}
+    \frac{}{k}
+\end{equation}
+
+\end{document}

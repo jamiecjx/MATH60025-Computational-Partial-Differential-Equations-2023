@@ -1,0 +1,166 @@
+\documentclass{article}
+
+\usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath} % useful
+\usepackage{amsfonts} % fonts like \mathbb{R} among others
+\usepackage{amssymb}
+\usepackage{amsthm} % used for writing lemmas/theorems/etc
+\usepackage{tikz} % for visual tools
+\usepackage{authblk}
+\usepackage{enumitem}
+\usepackage{url}
+\usepackage{subfig}
+\usepackage{float} % i hate images
+\numberwithin{equation}{section}
+\usepackage[margin=1in]{geometry}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{remark}{Remark}[theorem]
+
+\title{MATH60029 Functional Analysis Coursework 1}
+\author{
+CID: 02033585
+}
+\date{}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\pr}{\mathbb{P}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\dm}{\mathrm{d}}
+
+\newcommand{\mc}[1]{\mathcal{#1}}
+\newcommand{\pspace}{(\Omega, \mathcal{F}, \mathbb{P})}
+
+\newcommand{\sm}{\setminus}
+
+\newcommand{\ie}{\textit{i}.\textit{e}. }
+\newcommand{\eg}{\textit{e}.\textit{g}. }
+
+\newcommand{\dd}[2]{\frac{\mathrm{d} #1}{\mathrm{d} #2}}
+\newcommand{\ddn}[3]{\frac{\mathrm{d}^{#3} #1}{\mathrm{d}^{#3} #2}}
+\newcommand{\pp}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\ppn}[3]{\frac{\partial^{#1} #2}{\partial^{#1} #3}}
+
+
+\newcommand{\eps}{\varepsilon}
+\newcommand{\set}[1]{\{#1\}}
+\begin{document}
+
+\maketitle
+
+\section{Problem set I, exercise I.1.4}
+It is not a linear space. The function $f(z) = -z^2 - 2z$ is analytic (it's a polynomial) and is also a solution to the differential equation since
+
+\begin{align}
+    f'(z) &= -2z - 2 \\
+    f''(z) &= -2
+\end{align}
+But since we are over $\R$ or $\C$, we can multiply by the scalar $2$. However, $2f(z)$ is not a solution to the differential equation, hence it is not closed under scalar multiplication, and is not a Linear space.
+
+\section{Problem set II, exercise II.1(i.a)}
+Firstly, we need $s \leq 1$ since otherwise the triangle inequality is violated.
+\begin{align}
+    \rho_s(0,1) + \rho_s(1,2) = 2 \\
+    \rho_s(0,2) = 2^s
+\end{align}
+For $0 \leq s \leq 1$, $\rho_s$ is a metric. It is clearly symmetric and positive definite. For the triangle inequality, note that $x^s$ is both monotone increasing and concave, so that
+
+\begin{align}
+    |x-z| \leq &|x-y| + |y-z| \\
+    \implies |x-y|^s \leq &(|x-y| + |y-z|)^s \leq |x-y|^s + |y-z|^s
+\end{align}
+
+hence, $\rho_s$ is a metric.
+
+We now investigate whether addition is continuous with respect to the product topology on $\R \times \R$. Note that $\rho_s$ is a translation invariant metric \ie $\rho_s(x+z, y+z) = \rho_s(x, y)$.
+
+Fix $\eps > 0$. Choose $\delta_1 = \frac{\eps}{2}$ and $\delta_2 = \frac{\eps}{2}$. Then, for any $x_1, x_2, y_1, y_2$ such that we have
+\begin{equation}
+    \rho_s(x_1,x_2) < \delta_1 \hspace{1cm}  \rho_s(y_1,y_2) < \delta_2
+\end{equation}
+then
+\begin{align}
+    \rho_s(x_1+y_1,x_2+y_2) &= \rho_s(x_1-x_2,y_2-y_1)  \\
+    &\leq \rho_s(x_1-x_2,0) + \rho_s(0, y_2-y_1) = \rho_s(x_1,x_2)+ \rho_s(y_1, y_2) 
+    < \frac{\eps}{2} + \frac{\eps}{2} = \eps
+\end{align}
+Thus, addition is continuous.
+
+Now we turn to scalar multiplication. Under $s=0$, it is not continuous since if we pick $\lambda_n = \frac 1n$ and any non-zero element $x \in V$, then $(\lambda_n, x) \to (0, x)$.
+
+However $\rho_0(\lambda_n x, 0) = 1$ for any $n$ does not go to zero, hence we lose continuity.
+
+If $s>0$, then scalar multiplication is continuous. For any point $(\lambda, x) \in \R \times \R$, we fix $\eps > 0$. Choose $\delta_1 = \min \left(\frac{\eps}{2|\lambda|^s},1\right)$ and $\delta_2 = \left(\frac{\eps}{2}\frac{1}{|x|^s + 1}\right)^{\frac{1}{s}}$. Then for any $\sigma \in \R$ and $y \in \R$ such that
+
+\begin{equation}
+    \rho_s(x,y) = | x- y|^s < \delta_1 \hspace{1cm}  |\lambda-\sigma| < \delta_2
+\end{equation}
+we have
+\begin{align}
+    \rho_s(\lambda x, \sigma y) \leq \rho_s(\lambda x, \lambda y) + \rho_s(\lambda y, \sigma y) \\
+    = |\lambda x-\lambda y|^s + |\lambda y-\sigma y|^s \\
+    = |\lambda|^s| x- y|^s + |\lambda-\sigma |^s |y|^s \\
+    < |\lambda|^s \delta_1 + \delta_2 ^ s (|x|^s + |y-x|^s) \\
+    < |\lambda|^s \delta_1 + \delta_2 ^ s (|x|^s + \delta_1) \\
+    \leq |\lambda|^s \frac{\eps}{2|\lambda|^s} + \frac{\eps}{2}\left(\frac{1}{|x|^s + 1}\right)(|x|^s + \delta_1) \leq \eps
+\end{align}
+Hence, scalar multiplication is continuous.
+
+Thus, $V, \R$ is a linear space when $s \in (0,1]$.
+
+\section{Problem set III.5}
+\subsection{(iii)}
+We use $x_j^n$ to denote the $j$th element of the $n$th term of the sequence.
+Let $A = \set{x \in \ell_p : x_j = 0}$ for some fixed $j \in \mathbb{N}$ and let $x^n$ be a sequence in $A$ that converges to $x \in \ell_p$. 
+
+Suppose $x_j \neq 0$. Then
+\begin{align}
+    \|x^n - x\|_{\ell_p}^p = \sum_{i=0}^{\infty} |x_i^n - x_i|^p \geq |x_j^n - x_j|^p \\
+    =  |x_j|^p > 0
+\end{align}
+
+Hence, $\|x^n - x\|_{\ell_p}$ does not go to $0$, a contradiction. Therefore, $x_j = 0$ and $A$ is closed.
+
+We now show there is no open ball around any point $x \in A$. Consider the sequence $x^n$ defined by
+\begin{equation}
+    x^n_i = x_i + 
+        \left\{\begin{matrix}
+            \frac 1n & i = j\\ 
+            0 & \text{otherwise}
+           \end{matrix}\right.
+\end{equation}
+Then no element of $x^n$ is in $A$, and $x^n$ converges to $x$. To see this last part, note that
+\begin{equation}
+    \|x^n - x\|_{\ell_p} = \frac 1n \to 0
+\end{equation}
+Thus, there is no open ball around $x$ since we can approximate $x$ arbitrarily accurately with elements not in $A$.
+
+\subsection{(iv)}
+Let $B = \set{x \in \ell_p: \forall j \in \mathbb{N}, |x_j| \leq Cj^{-2/p}}$ for some $C > 0$. Again, let $x^n$ be a sequence in $B$ that converges to $x \in \ell_p$. Suppose for contradiction, there exists $j$ such that $|x_j| = a > C j^{-2/p}$.
+
+Then, we have
+\begin{align}
+    \|x^n - x\|_{\ell_p}^p = \sum_{i=0}^{\infty}|x_i^n - x_i|^p \geq |x_j^n - x_j|^p \geq \left||x_j^n| - a\right|^p \geq |a - C j^{-2/p}|^p > 0
+\end{align}
+
+Hence, $\|x^n - x\|_{\ell_p}$ remains bounded away from $0$ contradicting the convergence. Thus, $x \in B$ and $B$ is closed.
+
+% \begin{equation}
+%     |x+y| \leq |x| + |y| \leq (|x|^s + |y|^s)^{\frac 1s}
+% \end{equation}
+% \begin{equation}
+%     |x+y|^s \leq |x|^s + |y|^s
+% \end{equation}
+
+
+
+
+\end{document}

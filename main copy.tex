@@ -1,0 +1,281 @@
+\documentclass{article}
+
+\usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath} % useful
+\usepackage{amsfonts} % fonts like \mathbb{R} among others
+\usepackage{amssymb}
+\usepackage{amsthm} % used for writing lemmas/theorems/etc
+\usepackage{tikz} % for visual tools
+\usepackage{authblk}
+\usepackage{enumitem}
+\numberwithin{equation}{section}
+\usepackage[margin=1in]{geometry}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{corollary}{Corollary}[theorem]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\newtheorem{remark}{Remark}[theorem]
+
+\title{MATH60025 Computational PDEs}
+\author{Lectured by Dr Shahid Mughal\\
+Spring 2023\\
+Transcribed by a muppet from Sesame Street
+}
+\date{}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\pr}{\mathbb{P}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\dm}{\mathrm{d}}
+
+\newcommand{\mc}[1]{\mathcal{#1}}
+\newcommand{\pspace}{(\Omega, \mathcal{F}, \mathbb{P})}
+
+\newcommand{\sm}{\setminus}
+
+\newcommand{\ie}{\textit{i}.\textit{e}.}
+\newcommand{\eg}{\textit{e}.\textit{g}.}
+
+\newcommand{\dd}[2]{\frac{\mathrm{d} #1}{\mathrm{d} #2}}
+\newcommand{\ddn}[3]{\frac{\mathrm{d}^{#3} #1}{\mathrm{d}^{#3} #2}}
+\newcommand{\pp}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\set}[1]{\{#1\}}
+
+
+\begin{document}
+
+\maketitle
+
+
+
+
+% Solve u_x = u x>0 and u(0) with finite diferenrce
+
+
+\section{temp}
+
+Function $f$ defined on some open set $U\subset\R$ is said to be real analytic at a point $x_0$ if it is $C^{\infty}$ and its taylor series
+\begin{equation}
+    T(x) = \sum_{0} \frac{f^{(n)}(x)}{n!}(x-x_0)^n = f(x)
+\end{equation}
+In a neighbourhood of $x_0$.
+
+Then $f$ is real analytic on $U$ if it is real analytic on every point $x_0 \in U$.
+
+Alternatively: $f$ is real analytic on $U$ is equivalent too
+
+$\forall K$ compact subsets of $U$, $\exists$ $C(K)$ a constant depending on $K$ and $r>0$ such that
+
+\begin{equation}
+    |f^{(n)}(x)| \leq C(K) \frac{n!}{r^n}
+\end{equation}
+
+\subsection{Three general theorems in ODEs}
+Recall that we have an ODE:
+\begin{equation}
+    u'(t) = F(t,u(t)) \hspace{1cm} t \in I \subset \R
+\end{equation}
+\begin{align}
+    u_1'(t) = F_1(t,u_1,u_2,\dots,u_n)
+\end{align}
+etc.
+$u = (u_1,u_2,\dots,u_n)$, a function on $I \times \R^n$.
+We call $F$ the vector field and $u$ the flow.
+
+\begin{theorem}Cauchy-K Theorem
+    If $F$ is real analytic in both variables, then there exists a unique local, analytic solution. For all $(t_0,u_0) \in \cal{A}$, there exists a neighbourhood $I_t \times I_u$ subset $\cal{A}$. Such that the ODE has a unique, local, analytic solution in this neighbourhood, with initial condition $u(t_0) = u_0$.
+\end{theorem}
+
+This theorem is pretty strong. We need $F$ to be analytic, which is a strong assumption.
+
+\begin{theorem}Picard-Lindelhoff Theorem
+    Assume $F$ is Lipschitz continuous in $u$ and continuous in $t$. Then there exists a unique, local solution (it is no longer necessarily analytic), but it is a $C^1$ function.
+\end{theorem}
+For example, if $F$ is linear, then we have the Lipschitz property. So non-linearity is important uniqueness questions.
+\begin{theorem}Peano Theorem
+    Assume $F$ is continuous. Then there exists a solution.
+\end{theorem}
+
+\subsection{Local vs Global solutions}
+Have you ever solved an ODE but found that its solution blew up in finite time?
+Example: $u'(t) = u^2(t)$ with initial condition $u(0) = u_0 > 0$. Then it's only defined up to finite time.
+
+But $u'(T) = -u^2(t)$ with the same initial condition has a global solution.
+
+Recall that if $f$ is globally Lipschitz, then there is no blowup.
+
+\begin{proof}
+    Cauchy-K
+    Scalar ODE case:
+    $b>0$
+    $F: (u_0-b,u_0+b) \to \R$ is Real analytic and $u(t)$ is the unique solution. We already have uniqueness and existence from P-L.
+
+    Proof based on method of majorants.
+
+    \textit{A priori estimates}. Assuming Analyticity: we can write
+    
+    \begin{align}
+        u^{(0)}(t) = F^{(0)}(u(t))
+        u^{(1)}(t)  = F^{(1)}(u(t))
+    \end{align}
+    etc.
+    Then you can find a universal polynomial with positive coefficients such that the $n$th order derivative can be written as an $n$th order polynomial of the derivatives of $F$.
+
+    $|u^{(n)}| \leq P_n(|F^{(0)}(0)|, ..., |F^{(n)}(0)|)$
+
+
+    Majorant $G$: 
+
+    Form a new ODE with it with $v$ solting $b'(t) = G(v(t))$ with initial condition $v(0)=0$.
+    If $v$ is real-analytic, near $0$, then the series summing over all derivatives of $v$ equals $v$ with positive radius of convergence. Then theres a bound for $v$'s derivatives .
+
+
+    Recall that $C \sum_{n \geq 0} (\frac zr)^n = G(z)$, our majorant. There's a closed form for this guy, and is real analytic at $B_r(0)$.
+
+
+    Remains to show that $v$ solves the ODE with vector field is indeed real analytic. But you can literally just solve the ODE with seperation of variables lmao.
+
+    \begin{equation}
+        (r-v) dv = Crdt
+    \end{equation}
+    \begin{equation}
+        v(t) = r - r\sqrt{1-\frac{2Ct}{r}}
+    \end{equation}
+    Note that this is real analytic when $|t| < \frac{r}{2C}$ because it is.
+
+\end{proof}
+
+
+\section{Lecture 4}
+First order system:
+\begin{equation}
+    \pp{u}{x_i}
+\end{equation}
+Where $x$ is a vector in $\R^d$. We denote this as a vector $(x', x_i)$. We denote the partial derivatives as $u_{x_d}$.
+\begin{equation}
+    =\sum_{j=1}^{d-1} B_j(u,x') u_{x_j} + C(u,x')
+\end{equation}
+In a ball around zero $B(0,r)$.
+Where $u=0$ on $\set{x_d = 0} \cap B(0,r)$.
+
+Where $B_j$ and $C$ are analytic funtions from $R^m \times R^{d-1}$ to Matrices and $m$ dimensional vectors respectively.
+
+The RHS does not depend on the $x_d$ coordinate.
+
+Example:
+\begin{equation}
+    u_{tt} = uu_{xy} - u_{xx} + u_t
+\end{equation}
+Second order PDE, so we specify the third and first derivatives. $u = g_0(x,y)$ on $t=0$ and $u_t = g_1(x,y)$ on $t=0$. Here, $g_1$ and $g_2$ are analytic functions, in order to apply Cauchy Kobalaskaya (we call them Cauchy delta).
+
+Then $f(t,x,y) = g_0 + tg_1$ is also real analytic. If you take $f$ at $t=0$, you get $f =  g_0$ at $t=0$ and $f_t  = g_1$ at $t=0$.
+
+Now set $w = u-f$.
+Then $w_{tt} = ww_{xy} - w_{xx} + w_t + fw_{xy} + f_{xy}w + F$.
+Where $F$ is a real analytic function equal to $ff_{xy} - f_{xx}+f_t$.
+
+Importantly, the boundary conditions for $w$ are $w = 0$ on $t=0$ and $w_t = 0$ on $t=0$. These boundary conditions are better to work with, they are trivial.
+
+We will now derive a matrix valued first order form.
+Consider now 
+\begin{equation}
+    (x,y,t) \to (x^1,x^2,x^3), u=  (w,w_x,w_y,w_t) = (u^1,u^2,u^3,u^4), m=4
+\end{equation}
+Which includes all of the derivatives of $w$ up to first order terms. If our PDE was third order, we would need up to all second order terms etc.
+
+We then write down
+\begin{align}
+    \pp{u^1}{x_3} = u^1_t = w_t = u^4 \\
+    \pp{u^2}{x_3} = u^2_t = w_{xt} = u^4_{x^1} \\
+    \pp{u^3}{x_3} = u^3_t = w_{yt} = u^4_{x^2} \\
+    \pp{u^4}{x_3} = u^4_t = w_{tt} = \dots
+\end{align}
+
+We end up with a matrix of the form:
+\begin{equation}
+    \pp{}{x_3} \begin{bmatrix}
+        u^1 \\
+        u^2 \\
+        u^3 \\
+        u^4
+    \end{bmatrix}
+    = some matrix
+\end{equation}
+
+% 0,,0,0,0,
+% 0,0,0,1
+% 0,0,0,0
+% 0,-1,0,0   B_1
+
+% +
+
+% 0,0,0,0,0,
+% 0,0,0,0,
+% ,0,0,0,1
+% 0,f+u1 0 0  B_2
+
+% + extra terms
+
+Task: Provide a C-K theorem for $k$th order quasilinear PDEs with analytic Cauchy delta $g_0,\dots g_{k-1}$.
+
+Specified on analytic, non-characteristic hypersurfaces $\Gamma$. For example $\Gamma = \set{x_d = 0}$ or $\Gamma = \set{t=0}$.
+Now, from differential geometry we can send the $d-1$ dimensional hypersphere equiped with a normal outward unit vector $n(x_0)$ for $x_0 \in \Gamma$.
+
+We are using the $i$th normal derivative of $u$ at $x_0 \in \Gamma$. Look it up yourself.
+
+\subsection{General $C^k$ boundary}
+A boundary $\partial U$ is $C^k$ if each bit locally is the graph of a $C^k$ function.
+So for every $x_d$ in the boundary, there exists an $r>0$ and a $C^k$ function of the other variables $x_1, \dots, x_{d-1}$ so that the function equals $x_d$ on the boundary. So for example, the circle.
+Note that we can relabel as we wish.
+
+There are always ways to flatten out the boundary \begin{equation}
+    y_i = x_i = \phi^i(x)
+\end{equation}
+\begin{equation}
+    y_d = x_d - \gamma(x_{t_1},\dots,x_{t_{d-1}})    
+\end{equation}
+
+Similarly\dots
+We end up with a pair of functions $\phi$ and $\psi$ which flatten the boundary.
+
+
+\subsection{Flat boundary case}
+$\Gamma = \set{d_x= 0 }$, $U = \R^d, n = e_d$.
+$u = g_0$, $\pp{u}{x_d} = h_1$ \dots on the boundary $\Gamma$ up to the $k-1$th derivative.
+
+This allows us to compute all the derivatives for $x_i$ up to first order. They are all $\pp{g_0}{x_i}$.
+
+This also means that the gradient $\nabla u$ is determined on $\Gamma$.
+
+Now for second order derivatives, they are also in terms of $g_i$. This means we also determine the Hessian matrix on $\Gamma$. We can keep going.
+
+Only problem is that the $k$th derivative of $u$ is not given. But that's where we use the PDE itself. If we are quasilinear, we are OK. In fact, we seem to still be OK if it is not quasilinear as long as we define a function $A(x)$ and then the last derivative can be defined.
+
+Characteristic surface: $\Gamma = \set{x_d=0}$ with boundary conditions are non-characteristics for our pde if
+
+\section{Lecture 5}
+\begin{definition}[non-characteristic hypersurface]
+    We say that $\Gamma = \set{x_d = 0}$ with boundary conditions $g_0,g_1,\dots,g_{k-1}$ are non-characteristic if at $x \in \Gamma \cap U$, for the PDE, $A(x) = a \neq 0$ on $\Gamma \cap U_x$.
+\end{definition}
+Recall that 
+\begin{equation}
+    A(x) = \sum_{|\alpha| = k}a_{\alpha}()
+\end{equation}
+
+\begin{definition}[for a general hypersurface $\Gamma$]
+    If $\sum_{|\alpha| = k} a_{\alpha} n^{\alpha} \neq 0$ on $\Gamma$ for all values of the arguments of the arguments of the coefficient $a_{\alpha}$.
+\end{definition}
+
+If $\Gamma$ is non-characteristic for the PDE, and if $u$ is a smooth solution of PDE, and $u$ satisfies the boundary conditions on $\Gamma$, then we can uniquely determine all the potential derivatives of $u$ along $\Gamma$ in terms of  $\Gamma, g_0, g_1,\dots,g_{k-1}, a_{\alpha}(|\alpha|=k),a_{\alpha}$
+
+\begin{proof}
+    Reduce to  the already solved flat-boundary case. For any fixed $x_0$ on $\Gamma$, find smooth maps to flatten, unflatten the boundary at that point.
+    
+\end{proof}
+\end{document}
