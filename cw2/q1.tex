@@ -114,14 +114,13 @@ CID: 02033585
 Everywhere except for $a$, we use the second-order central differences $\delta^2_x$ and $\delta^2_y$ to approximate $u_{xx} + u_{yy}$.
 \begin{align}
     \frac{1}{h^2} \left(
-        4U_{n,n} - U_{n+1, n} - U_{n-1, n} - U_{n, n+1} - U_{n, n-1}
+        4U_{i,j} - U_{i+1,j} - U_{i-1,j} - U_{i,j+1} - U_{i,j-1}
     \right)
     = 4
 \end{align}
-
-At point $a$ we enforce the boundary condition with the $O(h^2)$ accurate central difference
+At point $a$ we enforce the boundary condition with the $O(h^2)$ accurate central difference (with $i$ pointing in the positive $x$ direction)
 \begin{equation}
-    \dd{u_{n}}{x}=\frac{u_{n+1}-u_{n-1}}{2h}
+    \pp{u_{i,j}}{x}=\frac{u_{i+1,j}-u_{i-1,j}}{2h}
 \end{equation}
 This introduces a ficticious point to the left of $a$, which must have value equal to $b$ by the above. Combined with the finite difference approximation for $u_{xx} + u_{yy} + 4$, we get the equation
 
@@ -175,7 +174,7 @@ We iterate starting with $a_0,b_0,c_0,d_0,e_0 = 0$ and equations
     4d_1 &= 1+ 2c_0 \\
     4e_1 &= 3+2c_0
 \end{align}
-...replacing $a_0$ with $a_1$, $b_0$ with $b_1$ etc. each iteration.
+Once all values are calculated, we replace $a_0$ with $a_1$, $b_0$ with $b_1$ etc. simultaneously, each iteration.
 If we let $D$ be the diagonal part of $A$ and $C$ be the off-diagonal entries, we can rewrite this as the matrix system
 \begin{equation}
     U^{j+1} = D^{-1}(b - CU^j)
@@ -208,14 +207,14 @@ The successive over-relaxation scheme is given by iterates
 where $w$ is a parameter to be chosen (the case of Gauss-Seidel is given by $w=1$) and $r^j$ is the residual $b - AU^j$.
 The function is written at \path{SOR_method_A}.
 
-\subsection{Plot of residual norm over iterations}
+\subsection{Convergence of the three methods}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.46\textwidth]{fig1.png}
+    \includegraphics[width=0.496\textwidth]{fig1.png}
     \caption{Plot of residual norm over iterations, for the three different iterative methods.}
     \label{fig:afig_1}
 \end{figure}
-In Figure \ref{fig:afig_1} we see that Jacobi converges to absolute residual norm $10^{-15}$ in about $70$ iterations, Gauss-Seidel in $40$ and SOR, $w=1.25$ in about $30$. This corresponds to the spectral radius of the three iteration matrices.
+In Figure \ref{fig:afig_1} we see that Jacobi reduces the residual norm by a factor of $10^{-15}$ in about $65$ iterations, Gauss-Seidel in $40$ and SOR, $w=1.25$ in about $25$. The following section will show how these values are a consequence of the different spectral radii of the iteration matrices.
 
 For Jacobi, the iteration matrix is $D^{-1}(L+V)$, which has spectral radius $\rho_J \approx 0.5896$ (calculated using \path{spectral_radius}) in this case. Similarly, $\rho_{GS}$ is calculated with $(D+L)^{-1}V$ and is approximately $0.3476$.
 
@@ -239,7 +238,7 @@ With these spectral radii, we can estimate the number of iterations needed to re
 \begin{equation}
     \text{iterations} \approx -\frac{15}{\log_{10}(\rho)}
 \end{equation}
-Plugging in the three spectral radii, we get approximately 65 iterations for Jacobi, 33 iterations for Gauss-Seidel and 25 iterations for SOR, $w=1.25$, which is very close to what we observe in Figure \ref{fig:afig_1}
+Plugging in the three spectral radii, we get approximately 65 iterations for Jacobi, 33 iterations for Gauss-Seidel and 25 iterations for SOR, $w=1.25$, which is very close to what we observe in Figure \ref{fig:afig_1}.
 
 \subsection{Optimal parameter for SOR}
 We can use the previous formula in Equation \eqref{eq:sor_it_mat} to find the optimal parameter by minimising
@@ -249,13 +248,18 @@ We can use the previous formula in Equation \eqref{eq:sor_it_mat} to find the op
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.46\textwidth]{fig2.png}
+    \includegraphics[width=0.496\textwidth]{fig2.png}
     \caption{Plot of spectral radius of iteration matrix of SOR, with $w$ varying.}
     \label{fig:afig_2}
 \end{figure}
-Figure \ref{fig:afig_2} shows the spectral radius as $w$ varies. There is a clear minimum at around $1.2103$, and we find that the spectral radius at this point is $\approx 0.2104$. We plot below the convergence rate at this point, compared to slightly perturbed values of $w$.
+Figure \ref{fig:afig_2} shows the spectral radius as $w$ varies. There is a clear minimum at around $1.2103$, and we find that the spectral radius at this point is $\approx 0.2104$. We plot below the convergence rate at this point, compared to neighbouring values of $w$. As expected $w$ minimises the iteration count within a margin of error (Here, iteration count was measured by checking if the residual was below a tolerance $10^{-14}$).
 
-\textbf{MISSING}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.496\textwidth]{fig2h.png}
+    \caption{Plot of iteration count of SOR, with $w$ varying.}
+    \label{fig:fig2h}
+\end{figure}
 
 \section{Part B}
 
@@ -296,12 +300,12 @@ Figure \ref{fig:afig_2} shows the spectral radius as $w$ varies. There is a clea
     \caption{$q-v$ boundary discretisation in the case $\Delta x = \Delta y$. The values $u_{i-1,j}$ and $u_{i,j-1}$ are known exactly, as they lie directly on the boundary.}
     \label{fig:grid2}
 \end{figure}
-Throughout this part, we assume that $\Delta x$ and $\Delta y$ both divide into $0.5$ an integer number of times, for simplicity. In addition, we also assume they are equal, to make use of the symmetry condition. The discretisation near the boundary therefore looks like Figure \ref{fig:grid2}. In this case, for any point $u_{i,j}$ close to the boundary, $u_{i,j-1}$ and $u_{i-1,j}$ lie \textbf{exactly} on the boundary, and thus have known values. As such, we can apply the usual finite difference formula without worrying about irregular boundaries.
+Throughout this part, we assume that $\Delta x$ and $\Delta y$ both divide into $0.5$ an integer number of times, for simplicity. In addition, we also assume they are equal, to make use of the symmetry condition. The discretisation near the boundary therefore looks like Figure \ref{fig:grid2}. In this case, for any point $u_{i,j}$ close to the boundary, $u_{i,j-1}$ and $u_{i-1,j}$ lie \textbf{exactly} on the boundary, and thus have known values. As such, we can apply the usual finite difference formula without worrying about irregular boundaries and adaptive stencils.
 
 \subsection{Gauss-Seidel (Single Grid)}
 Function written at \path{gauss_seidel_method_B} (as a special case of SOR), with parameter $N$ detailing how many points in both $x$ and $y$ directions.
 
-We solve for only the values on half of the domain, reflecting the values along the line of symmetry. Convergence is monitored using the pseudo-residual $\|u_{new} - u_{old}\|$, and we determine convergence when this residual is lower than $10^{-12}$.
+We solve for only the values on half of the domain, reflecting the values along the line of symmetry. Convergence is monitored using the pseudo-residual $\|u_{new} - u_{old}\|$, and we determine convergence when this residual is lower than $10^{-12}$. A solution calculated using this method is contoured at Figure \ref{fig:fig3}.
 
 \subsection{Successive Over-relaxation}
 Function written at \path{SOR_method_B}, with the same grid and convergence criterion as described before. We will determine the optimal $w$ parameter in two ways.
@@ -311,7 +315,7 @@ First, we estimate by testing different values $w$ and recording the number of i
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.4\textwidth]{figsor1.png}
+    \includegraphics[width=0.49\textwidth]{figsor1.png}
     \caption{Iteration count as the SOR parameter $w$ is varied, for different $N$.}
     \label{fig:figsor1}
 \end{figure}
@@ -335,8 +339,7 @@ Secondly, we estimate the optimal parameter by using the asymptotic formula for 
     \rho_{GS} &\approx 1 - \frac{\pi^2}{N^2} \\
     w_{opt} &\approx \frac{2}{1 + \sqrt{1-\rho_{GS}^2}}
 \end{align}
-The above formulas were taken from the lecture notes. The function calculating this is written at \path{optimal_SOR_parameter_asym}. \textbf{MISSING ADDITIONAL CONTEXT}
-
+The above formulas were taken from the lecture notes (Function calculating this is written at \path{optimal_SOR_parameter_asym}). The second formula is only exact for real symmetric block tridiagonal matrices, which typically occur when the domain the PDE is being solved on is square. However, we will see later on that nevertheless, the formula is a good guess for the optimal parameter with a fraction of the computational cost.
 
 \subsubsection{Combination and comparison between methods}
 The first method comes with the disadvantage that it becomes expensive to compute for large $N$, and so it is desirable to reduce the size of the interval search space to speed up computation time. On the other hand, the asymptotic formula is easy to compute, but is only a heuristic.
@@ -347,11 +350,12 @@ Using this method, we can see how accurate the asymptotic formula is by plotting
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.4\textwidth]{figsor2.png}
+    \includegraphics[width=0.49\textwidth]{figsor2.png}
     \caption{Comparison between the asymptotic value of $w_{opt}$ with the value obtained from testing the convergence rate.}
     \label{fig:figsor2}
 \end{figure}
 
+A solution calculated using this method is contoured at Figure \ref{fig:fig4}.
 
 
 
@@ -373,15 +377,27 @@ From the previous section, we know that the asymptotic formula for the spectral 
     \caption{Pseudo-residual plotted against iterations taken, for both Gauss-Seidel and SOR with our asymptotic formula for $w_{opt}$.}
     \label{fig:fig5}
 \end{figure}
-\textbf{MISSING TABLE SHOWING ITERATION COUNT}
-We note that SOR bring a very big improvement to the number of iterations required, especially for large $N$. This matches our theory that Gauss-Seidel requires $O(N^2)$ iterations, whilst SOR requires $O(N)$ only.
+
+The table below details the iteration counts for both Gauss-Seidel and SOR with the asymptotic optimal parameter for $w$. We note that SOR bring a very big improvement to the number of iterations required, especially for large $N$. The mathematical theory says that Gauss-Seidel requires $O(N^2)$ iterations, whilst SOR requires $O(N)$ only with the optimal parameter, and one can test this by seeing that $\frac{GS}{SOR \times N}$ is a fixed constant, which is $\approx 0.26$ from the table below.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|m{2.159cm}|m{2.159cm}|m{2.159cm}|m{2.159cm}|}
+    \hline
+    $N$ & Gauss-Seidel & SOR & $\frac{GS}{SOR \times N}$ \\ \hline
+    21  & 743          & 126 & 0.2808 \\ \hline
+    61  & 6433         & 402 & 0.2623 \\ \hline
+    101 & 17512        & 677 & 0.2561 \\ \hline
+    201 & 68101        & 1365 & 0.2482 \\ \hline
+    \end{tabular}
+    \end{table}
 
 \subsection{Asserting grid-independence}
-To determine grid independence, we calculate a solution for grid sizes $N_k = 2^(k+1)+1$ \ie halving the grid spacing each time. All these grids share the same initial 25 grid points in $N_1$. Thus, we can compare the 2-norm of the difference between the computed solution to $u_{N_k}$ and $u_{N_{k+1}}$ on the shared grid points. To assert grid-independence, we want this norm to be small. The analysis becomes easier if we plot in terms of the corresponding grid spacing $h_k = \frac{2}{N_k - 1}$.
+To determine grid independence, we calculate a solution for grid sizes $N_k = 2^{k+1}+1$ \ie halving the grid spacing each time. All these grids share the same initial 25 grid points in $N_1$. Thus, we can compare the 2-norm of the difference between the computed solution to $u_{N_k}$ and $u_{N_{k+1}}$ on the shared grid points. To assert grid-independence, we want this norm to be small. The analysis becomes easier if we plot in terms of the corresponding grid spacing $h_k = \frac{2}{N_k - 1}$.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.4\textwidth]{fig6.png}
+    \includegraphics[width=0.49\textwidth]{fig6.png}
     \caption{Log-Log plot of $\|u_{h_{k+1}} - u_{h_k}\|$ plotted against the grid spacing $h_k$.}
     \label{fig:fig6}
 \end{figure}
@@ -430,16 +446,16 @@ Thus, suppose we wished to have a solution accurate within 1\% of the true solut
 
 \begin{figure}[H]
     \centering
-    \subfloat[]{\includegraphics[width=0.4\textwidth]{fig31.png}\label{fig:fig31}}\hfill
-    \subfloat[]{\includegraphics[width=0.4\textwidth]{fig32.png}\label{fig:fig32}}
+    \subfloat[]{\includegraphics[width=0.49\textwidth]{fig31.png}\label{fig:fig31}}\hfill
+    \subfloat[]{\includegraphics[width=0.49\textwidth]{fig32.png}\label{fig:fig32}}
     \caption{Contoured solution computed with Gauss-Seidel, using $N=201, h=0.005$.}
     \label{fig:fig3}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \subfloat[]{\includegraphics[width=0.4\textwidth]{fig41.png}\label{fig:fig41}}\hfill
-    \subfloat[]{\includegraphics[width=0.4\textwidth]{fig42.png}\label{fig:fig42}}
+    \subfloat[]{\includegraphics[width=0.49\textwidth]{fig41.png}\label{fig:fig41}}\hfill
+    \subfloat[]{\includegraphics[width=0.49\textwidth]{fig42.png}\label{fig:fig42}}
     \caption{Contoured solution computed with SOR, $w=1.9568$ using $N=201, h=0.005$.}
     \label{fig:fig4}
 \end{figure}
@@ -454,11 +470,11 @@ The individual components are plotted below in Figure \ref{fig:fig7}. We notice 
 
 \begin{figure}[H]
     \centering
-    \subfloat[$u_x$]{\includegraphics[width=0.4\textwidth]{fig71x.png}\label{fig:fig71x}}\hfill
-    \subfloat[$u_x$]{\includegraphics[width=0.4\textwidth]{fig72x.png}\label{fig:fig72x}}
+    \subfloat[$u_x$]{\includegraphics[width=0.49\textwidth]{fig71x.png}\label{fig:fig71x}}\hfill
+    \subfloat[$u_x$]{\includegraphics[width=0.49\textwidth]{fig72x.png}\label{fig:fig72x}}
 
-    \subfloat[$u_y$]{\includegraphics[width=0.4\textwidth]{fig71y.png}\label{fig:fig71y}}\hfill
-    \subfloat[$u_y$]{\includegraphics[width=0.4\textwidth]{fig72y.png}\label{fig:fig72y}}
+    \subfloat[$u_y$]{\includegraphics[width=0.49\textwidth]{fig71y.png}\label{fig:fig71y}}\hfill
+    \subfloat[$u_y$]{\includegraphics[width=0.49\textwidth]{fig72y.png}\label{fig:fig72y}}
     \caption{Horizontal and vertical components of stress vectors.}
     \label{fig:fig7}
 \end{figure}
@@ -472,14 +488,13 @@ For this grid, the maximum and minimum values are summarised in the table below.
     2.1386238454222495 & -3.0268664561932646 & 2.1386238454222495 & -3.0268664561932646 \\ \hline
     \end{tabular}
     \end{table}
-
 We can also plot as a heatmap the magnitude and direction of the stress vectors, as seen in Figure \ref{fig:fig8}. From this we see that the areas of greatest stress are the two long edges, particularly near the corners $(0,2)$ and $(2,0)$. In addition, the two corners located at $(0.5,1)$ and $(1,0.5)$ experience stress as well in a very concentrated region.
 
 \begin{figure}[H]
     \centering
     \subfloat[Vector field]{\includegraphics[width=0.33\textwidth]{fig81.png}\label{fig:fig81}}
-    \subfloat[Heatmap of vector magnitudes]{\includegraphics[width=0.33\textwidth]{fig82.png}\label{fig:fig82}}
-    \subfloat[Contour map of vector magnitudes]{\includegraphics[width=0.33\textwidth]{fig83.png}\label{fig:fig83}}\hfill
+    \subfloat[Contour map of vector magnitudes]{\includegraphics[width=0.33\textwidth]{fig82.png}\label{fig:fig82}}
+    \subfloat[Heatmap of vector magnitudes]{\includegraphics[width=0.33\textwidth]{fig83.png}\label{fig:fig83}}\hfill
     \caption{Material stress calculated using backward 1st order finite differences.}
     \label{fig:fig8}
 \end{figure}
@@ -490,7 +505,7 @@ In order to investigate grid-independence for material stress, we repeat these c
 
 Intuitively, this makes sense since the negative values of $\sigma_x$ and $\sigma_y$ are achieved near the top-left and bottom-right corners and are generally spread out over a large area. In Figure \ref{fig:fig7}, these two regions appear to behave nicely \ie they do not change rapidly.
 
-However, the positive values are concentrated in a small region, and when contoured in Figure \ref{fig:fig7}, the values of $\sigma_x$ and $\sigma_y$ have a sudden spike in the corners and appear to blow up. This requires a finer grid in the neighbourhood the points to resolve the material stresses accurately, and it may well be that the material stresses are actually infinite in this small region. Even in Figure \ref{fig:fig3}, the contoured solution of $u$ has non-smooth behaviour at the points $(0.5,1)$ and $(1,0.5)$.
+However, the positive values are concentrated in a small region, and when contoured in Figure \ref{fig:fig7} and Figure \ref{fig:fig8}, the values of $\sigma_x$ and $\sigma_y$ have a sudden spike in the corners and appear to blow up. This requires a finer grid in the neighbourhood the points to resolve the material stresses accurately, which could explain why these values are heavily dependent on the grid.%Even in Figure \ref{fig:fig3}, the contoured solution of $u$ has non-smooth behaviour at the points $(0.5,1)$ and $(1,0.5)$.
 
 
 \begin{table}[H]
@@ -632,29 +647,29 @@ In Figure \ref{fig:fig10} we plot the computational grid and show how it maps to
 
 \begin{figure}[H]
     \centering
-    \subfloat[]{\includegraphics[width=0.49\textwidth]{fig10comp.png}\label{fig:fig10comp}}\hfill
-    \subfloat[]{\includegraphics[width=0.49\textwidth]{fig10phys.png}\label{fig:fig10phys}}
+    \subfloat[]{\includegraphics[width=0.499\textwidth]{fig10comp.png}\label{fig:fig10comp}}\hfill
+    \subfloat[]{\includegraphics[width=0.499\textwidth]{fig10phys.png}\label{fig:fig10phys}}
     \caption{Computational grid to Physical grid mapping}
     \label{fig:fig10}
 \end{figure}
 The above plot was generated by solving the system of quasilinear elliptic PDEs
 \begin{align}
+    \label{eq:xypde}
     &\alpha x_{\xi\xi} - 2\beta x_{\xi\eta} + \gamma x_{\eta\eta} = 0 \\
-    &\alpha y_{\xi\xi} - 2\beta y_{\xi\eta} + \gamma y_{\eta\eta} = 0 \\
-    &\text{where} \\
-    &\alpha = x_{\eta}^2 + y_{\eta}^2 \\
-    &\beta = x_{\xi} x_{\eta} + y_{\xi} y_{\eta} \\
-    &\gamma = x_{\xi}^2 + y_{\xi}^2
+    &\alpha y_{\xi\xi} - 2\beta y_{\xi\eta} + \gamma y_{\eta\eta} = 0 \nonumber\\
+    &\text{where} \nonumber\\
+    &\alpha = x_{\eta}^2 + y_{\eta}^2 \nonumber\\
+    &\beta = x_{\xi} x_{\eta} + y_{\xi} y_{\eta} \nonumber\\
+    &\gamma = x_{\xi}^2 + y_{\xi}^2 \nonumber
 \end{align}
-The boundary conditions are just Dirichlet boundary conditions, which correspond to the $x$ or $y$ values we should expect along the edges of the computational plane. For example, $x$ equals $0$ at $a$ and increases linearly to $2$ at $b$.
-
-The above equations were solved using $O(h^2)$ order finite differences for all terms, with $i$ pointing in the positive $\xi$ direction and $j$ in the positive $\eta$ direction.
+The boundary conditions are just Dirichlet boundary conditions, which correspond to the $x$ or $y$ values we should expect along the edges of the computational plane. The above equations were solved using $O(h^2)$ order finite differences for all terms, with $i$ pointing in the positive $\xi$ direction and $j$ in the positive $\eta$ direction.
 \begin{align}
     \pp{x_{i,j}}{\xi} &\approx \frac{x_{i+1,j} - x_{i-1,j}}{2h} \\
     \ppn{2}{x_{i,j}}{\xi} &\approx \frac{x_{i+1,j} - 2x_{i,j} + x_{i-1,j}}{h^2} \\
     \frac{\partial^2 x_{i,j}}{\partial \xi \partial \eta} &\approx \frac{x_{i+1,j+1} + x_{i-1,j-1} - x_{i-1,j+1} - x_{i+1,j-1}}{4h^2}
 \end{align}
-Using these finite differences, Gauss-Seidel iteration was applied, solving for $x_{i,j}$ and $y_{i,j}$ each time (despite it not being a linear problem). Function for solving this written at \path{gauss_seidel_xy_C}. \textbf{TODO: maybe add in proof of convergence with careful error control and showing that the errors don't grow.}
+Using these finite differences, Gauss-Seidel iteration was applied (with the possibility for acceleration), solving for $x_{i,j}$ and $y_{i,j}$ each time (despite it not being a linear problem). A function for solving this is written at \path{gauss_seidel_xy_C}. % \textbf{TODO: maybe add in proof of convergence with careful error control and showing that the errors don't grow.}
+
 
 \subsection{Computing the solution using the elliptic transform}
 The transformed PDE in terms of $\xi,\eta$ is calculated by using the chain rule \eg $u_x = u_\xi \xi_x + u_\eta \eta_x$ and the symmetry of second-order partial derivatives.
@@ -688,13 +703,95 @@ The boundary conditions are given by
     \item $u_{\xi} y_{\eta} - u_{\eta} y_{\xi} = 0$ when $\eta=1$
     \item $u_{\eta} x_{\xi} - u_{\xi} x_{\eta} = 0$ when $\eta=0$
 \end{itemize}
-The last two conditions follow from the chain rule when applied to $u_x = 0$ and $u_y=0$ respectively.
-
-We discretise all the derivatives as $O(h^2)$ accurate (the same used in finding $x$ and $y$). At the top and bottom boundary, we have to use $O(h^2)$ accurate forward and backward differences for the derivatives $x_{\eta}$, namely
+The last two conditions follow from the chain rule when applied to $u_x = 0$ and $u_y=0$ respectively. We discretise all the derivatives as $O(h^2)$ accurate (the same used in finding $x$ and $y$). At the top and bottom boundary, we have to use $O(h^2)$ accurate forward and backward differences for the derivatives $x_{\eta}$ and $y_{\eta}$, namely
 \begin{align}
-    f'(x) = \frac{-f(x) + 4f(x+h) - 3f(x+2h)}{2h} + O(h^2) \\
-    f'(x) = \frac{f(x) - 4f(x-h) + 3f(x-2h)}{2h} + O(h^2) 
+    \label{eq:forwardoh2}
+    f'(x) &= \frac{-3f(x) + 4f(x+h) - f(x+2h)}{2h} + O(h^2) \\
+    f'(x) &= \frac{3f(x) - 4f(x-h) + f(x-2h)}{2h} + O(h^2) \nonumber
 \end{align}
-Thus, we can use Gauss-Seidel iteration (Function written at \path{gauss_seidel_method_C}) applied to the linear PDE.
+Once we have approximated all the derivatives of $x$ and $y$, we can use Gauss-Seidel iteration (Function written at \path{gauss_seidel_method_C}) applied to the linear PDE
+%These are used to approximate $x_{\eta}$ and $y_{\eta}$. 
+An alternative approach would be to calculate the values of $x$ and $y$ at "ghost" points just above and below the lines $\eta=1$ and $\eta=0$ and use central differences. These values have to be calculated using iteration, since the system to be solved is also non-linear.
+
+We first calculate a solution using $N=61$ and show it in Figure \ref{fig:fig11}.
+\begin{figure}[H]
+    \centering
+    \subfloat[]{\includegraphics[width=0.49\textwidth]{fig111.png}\label{fig:fig111}}
+    \subfloat[]{\includegraphics[width=0.49\textwidth]{fig113.png}\label{fig:fig113}}\hfill
+    \caption{Solution $u$ calculated using Elliptic maps to a square grid.}
+    \label{fig:fig11}
+\end{figure}
+
+\subsection{Clustering of grid points}
+We demonstrate how the physical grid tends to cluster points around the two $135^{\circ} $ corners in Figure \ref{fig:fig12}. 
+
+\begin{figure}[H]
+    \centering
+    \subfloat[$N=21$]{\includegraphics[width=0.49\textwidth]{fig1211.png}\label{fig:fig1211}}
+    \subfloat[Close up]{\includegraphics[width=0.49\textwidth]{fig1212.png}\label{fig:fig1212}}\hfill
+    \subfloat[$N=61$]{\includegraphics[width=0.49\textwidth]{fig1221.png}\label{fig:fig1221}}
+    \subfloat[Close up]{\includegraphics[width=0.49\textwidth]{fig1222.png}\label{fig:fig1222}}\hfill
+    \caption{Physical grid for $N=21$ and $N=61$, focused on the two inner corners.}
+    \label{fig:fig12}
+\end{figure}
+
+Even if we change the boundary conditions in solving PDE \eqref{eq:xypde} (to lower the number of points along the $q-v$ edge from $N/2$ to only $N/5$, for example), the points still cluster near $q$ and $v$, with some warping of the squares near the edge.
+
+\begin{figure}[H]
+    \centering
+    \subfloat[$N=21$]{\includegraphics[width=0.49\textwidth]{fig1311.png}\label{fig:fig1311}}
+    \subfloat[Close up]{\includegraphics[width=0.49\textwidth]{fig1312.png}\label{fig:fig1312}}\hfill
+    \subfloat[$N=61$]{\includegraphics[width=0.49\textwidth]{fig1321.png}\label{fig:fig1321}}
+    \subfloat[Close up]{\includegraphics[width=0.49\textwidth]{fig1322.png}\label{fig:fig1322}}\hfill
+    \caption{Physical grid for $N=21$ and $N=61$, focused on the two inner corners, with less points on the $q-v$ edge.}
+    \label{fig:fig13}
+\end{figure}
+
+
+
+\subsection{Asserting grid-independence: Elliptic mapping}
+Below (Figure \ref{fig:fig14}) are plots of the pseudo residual on the computational grid as the number of points $N$ is increased. A coarse $5 \times 5$ grid was refined by halving the spacing $h$ each time, and the norm of $u_{new} - u_{old}$ was measured on the shared $25$ grid points, though this time we cannot calculate with as high values of $N$ due to the expensive computation of computing $x$ and $y$ from the quasilinear PDE (See Equation \eqref{eq:xypde}). Although the accuracy is not as good as in Figure \ref{fig:fig6} for each individual spacing $h$, we see that the residual is decreasing by a fixed factor (roughly $r=0.25$) for each halving of the grid spacing much like before. A similar calculation to before tells us that around $N=220$ is needed to be within 1\% of the true solution. Due to computational constraints, we will use $N=101$ grid points from now on.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.49\textwidth]{fig14.png}
+    \caption{Log-Log plot of $\|u_{h_{k+1}} - u_{h_k}\|$ plotted against the grid spacing $h_k$, for the elliptic mapping solution.}
+    \label{fig:fig14}
+\end{figure}
+
+\subsection{Comparison with Part B solution: Stress along $f-q-v-d$}
+Comparison of the solutions is hard to do within the interior of the domain, since the grid points are not shared and interpolation errors would dominate. However, we can measure the stress along the edge since these points are shared to compare.
+
+In order to compare $u_x$ and $u_y$, we need to use the chain rule for the solution using elliptic mappings, which results in
+\begin{equation}
+    u_x = \frac{u_{\xi} y_{\eta} - u_{\eta} y_{\xi}}{J} \hspace{1cm} 
+    u_y = \frac{u_{\eta} x_{\xi} - u_{\xi} x_{\eta}}{J}
+\end{equation}
+
+We use $O(h^2)$ accurate forward differences (See Equation \eqref{eq:forwardoh2}) to approximate all the derivatives. Figure \ref{fig:fig15} shows both the individual stress components $\sigma_x$ and $\sigma_y$ along with the magnitude of the stress vector. We see that the solutions agree away from the two points $q$ and $v$ (Within $O(h^2)$ error), but closer to the two corners the solutions vary more. This is what we expect, as previously we determined that the maximum values of $\sigma_x$ and $\sigma_y$ are achieved at these two points and are not grid independent. As such, some variation is to be expected in the stress values near $q$ and $v$.
+
+\begin{figure}[H]
+    \centering
+    \subfloat[$\sigma = \sqrt{\sigma_x^2 + \sigma_y^2}$]{\includegraphics[width=0.49\textwidth]{fig151.png}\label{fig:fig151}}
+    \subfloat[Absolute difference of $\sigma$ from part B and C]{\includegraphics[width=0.49\textwidth]{fig152.png}\label{fig:fig152}}\hfill
+    \subfloat[$\sigma_x$]{\includegraphics[width=0.49\textwidth]{fig153.png}\label{fig:fig153}}
+    \subfloat[$\sigma_y$]{\includegraphics[width=0.49\textwidth]{fig154.png}\label{fig:fig154}}\hfill
+    \caption{Comparison of stress along $f-q-v-d$ boundary.}
+    \label{fig:fig15}
+\end{figure}
+
+\subsection{Contour plots of stress field: Elliptic mapping}
+Due to the irregular placement of data, some plots can't be created (because Julia doesn't have a \path{tricontour} function\dots). Nevertheless, we plot the vector field of the stress and the contour plots of the magnitude of the stress as well as the individual $x$ and $y$ components. Much like before, we see that the greatest stress occurs near the top-left and bottom-right corners in a widespread area. Similarly we see spikes in the stress in the two corners at $q$ and $v$.
+
+\begin{figure}[H]
+    \centering
+    \subfloat[Vector field]{\includegraphics[width=0.49\textwidth]{fig161.png}\label{fig:fig161}}
+    \subfloat[$\sigma = \sqrt{\sigma_x^2 + \sigma_y^2}$]{\includegraphics[width=0.49\textwidth]{fig162.png}\label{fig:fig162}}\hfill
+    \subfloat[$\sigma_x$]{\includegraphics[width=0.49\textwidth]{fig163.png}\label{fig:fig163}}
+    \subfloat[$\sigma_y$]{\includegraphics[width=0.49\textwidth]{fig164.png}\label{fig:fig164}}\hfill
+    \caption{Plots of stress field $\sigma$}
+    \label{fig:fig16}
+\end{figure}
+
 
 \end{document}

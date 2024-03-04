@@ -131,6 +131,7 @@ for (i,N) in enumerate([21, 61, 101, 201])
     plot!(xv, res_gs, label="Gauss-Seidel")
     plot!(xv, res_sor, label = "SOR, with asymptotic w_opt")
     savefig("fig5" * string(i) * ".png")
+    display((num_its_gs, num_its_sor))
 end
 
 
@@ -139,7 +140,7 @@ end
 l = 7
 Ns = 5
 grid_norms = zeros(l)
-prev_u_subgrid = SOR_method_B(Ns, 1; maxit=2Ns^2, tol=1e-12)
+global prev_u_subgrid = SOR_method_B(Ns, 1; maxit=2Ns^2, tol=1e-12)
 Nv = Int[5]
 for n=1:l
     N = (Ns-1)*2^n + 1
@@ -180,30 +181,65 @@ N=201; xv = range(0, 2, N); yv = range(0, 2, N)
 U = gauss_seidel_method_B(N; maxit=N^2)
 u(x,y) = linear_interpolation((xv, yv), U)(x,y)
 
-for (name, camera) in [("fig31.png", (30,30)), ("fig32.png", (0,90))]
-    plot(xv, yv, u, st=:surface,camera=camera,
-        xlabel = "x",
-        ylabel = "y",
-        zticks = [0,1],
-        title = "Gauss-Seidel method, N = " * string(N)
-    )
-    savefig(name)
+plot(xv, yv, u, st=:surface,camera=(30,30),
+    xlabel = "x",
+    ylabel = "y",
+    zticks = [0,1],
+    title = "Gauss-Seidel method, N = " * string(N)
+)
+savefig("fig31.png")
+
+
+
+function uz(u)
+    function uz(x,y)
+        if x<1 && y<1 && x+y<1.5
+            return NaN
+        end
+        u(x, y)
+    end
+    uz
 end
+
+
+plot(xv, yv, uz(u).(xv', yv),
+xlabel = "x",
+ylabel = "y",
+title = "Gauss-Seidel method, N = " * string(N),
+levels = 0:0.05:1.25,
+aspect_ratio=:equal,
+lims=(0,2)
+)
+
+savefig("fig32.png")
 
 w = optimal_SOR_parameter_asym(N)
 U = SOR_method_B(N, w; maxit=N^2)
 u(x,y) = linear_interpolation((xv, yv), U)(x,y)
 
 
-for (name, camera) in [("fig41.png", (30,30)), ("fig42.png", (0,90))]
-    plot(xv, yv, u, st=:surface,camera=camera,
-    xlabel = "x",
-    ylabel = "y",
-    zticks = [0,1],
-    title = "SOR method, N = " * string(N) * ", w = " * string(round(w, digits =4))
-    )
-    savefig(name)
-end
+plot(xv, yv, u, st=:surface,camera=(30,30),
+xlabel = "x",
+ylabel = "y",
+zticks = [0,1],
+title = "SOR method, N = " * string(N) * ", w = " * string(round(w, digits =4))
+)
+savefig("fig41.png")
+
+
+
+plot(xv, yv, uz(u).(xv', yv),
+xlabel = "x",
+ylabel = "y",
+title = "SOR method, N = " * string(N) * ", w = " * string(round(w, digits =4)),
+levels = 0:0.05:1.25,
+aspect_ratio=:equal,
+lims=(0,2)
+)
+savefig("fig42.png")
+
+
+
 
 # stress fields, with 1st order backward difference
 
@@ -211,95 +247,129 @@ function material_stress(N)
     w = optimal_SOR_parameter_asym(N)
     U = SOR_method_B(N, w; maxit=N^2)
     h = 2/(N-1)
-    Ux = zero(U)
-    Uy = zero(U)
+    σx = zero(U)
+    σy = zero(U)
     for i=2:N
         for j=1:N
-            Ux[i,j] = (U[i,j] - U[i-1,j])/h
+            σx[i,j] = (U[i,j] - U[i-1,j])/h
         end
     end
     for j=2:N
         for i=1:N
-            Uy[i,j] = (U[i,j] - U[i,j-1])/h
+            σy[i,j] = (U[i,j] - U[i,j-1])/h
         end
     end
 
     #clean up values on boundary
     for i=1:N÷4+1
-        Ux[N÷2+1,i] = 0; Ux[N÷2+2-i,i+N÷4] = 0
-        Uy[i,N÷2+1] = 0; Uy[N÷2+2-i,i+N÷4] = 0
+        σx[N÷2+1,i] = 0; σx[N÷2+2-i,i+N÷4] = 0
+        σy[i,N÷2+1] = 0; σy[N÷2+2-i,i+N÷4] = 0
     end
-    Ux, Uy
+    σx, σy
 end
 
 N=201; xv = range(0, 2, N); yv = range(0, 2, N)
-Ux, Uy = material_stress(N)
-ux(x,y) = linear_interpolation((xv, yv), Ux)(x,y)
-uy(x,y) = linear_interpolation((xv, yv), Uy)(x,y)
-for (name, camera) in [("fig71x.png", (30,30)), ("fig72x.png", (0,90))]
-    plot(xv, yv, ux, st=:surface,camera=camera,
-    xlabel = "x",
-    ylabel = "y",
-    title = "u_x contour, backward 1st order difference")
-    savefig(name)
-end
-for (name, camera) in [("fig71y.png", (30,30)), ("fig72y.png", (0,90))]
-    plot(xv, yv, uy, st=:surface,camera=camera,
-    xlabel = "x",
-    ylabel = "y",
-    title = "u_y contour, backward 1st order difference")
-    savefig(name)
-end
+σx, σy = material_stress(N)
+ux(x,y) = linear_interpolation((xv, yv), σx)(x,y)
+uy(x,y) = linear_interpolation((xv, yv), σy)(x,y)
+
+plot(xv, yv, ux, st=:surface,camera=(30,30),
+xlabel = "x",
+ylabel = "y",
+title = "u_x contour, backward 1st order difference",)
+savefig("fig71x.png")
+
+plot(xv, yv, uz(ux).(xv', yv),
+xlabel = "x",
+ylabel = "y",
+title = "u_x contour, backward 1st order difference",
+levels = -3:0.1:3,
+aspect_ratio=:equal,
+lims=(0,2)
+)
+savefig("fig72x.png")
 
 
+plot(xv, yv, uy, st=:surface,camera=(30,30),
+xlabel = "x",
+ylabel = "y",
+title = "u_y contour, backward 1st order difference")
+savefig("fig71y.png")
+
+
+plot(xv, yv, uz(uy).(xv', yv),
+xlabel = "x",
+ylabel = "y",
+title = "u_y contour, backward 1st order difference",
+levels = -3:0.1:3,
+aspect_ratio=:equal,
+lims=(0,2)
+)
+savefig("fig72y.png")
 
 using CairoMakie
-function plot_material_stress(Ux, Uy, N1, N2, name1, name2)
+function plot_material_stress(σx, σy, N1, N2, name1, name2)
     fig = Figure()
     xs = range(0,2,N1)
     ys = range(0,2,N1)
     v = (N2-1)÷(N1-1)
     println(v)
-    us = Ux[1:v:end,1:v:end]
-    vs = Uy[1:v:end,1:v:end]
+    us = σx[1:v:end,1:v:end]
+    vs = σy[1:v:end,1:v:end]
     st = vec(sqrt.(us .^ 2 .+ vs .^ 2))
     ax, hm = CairoMakie.arrows(fig[1, 1][1, 1], xs, ys, us, vs, arrowsize = 10, lengthscale = 0.025,
     arrowcolor = st, linecolor = st, normalize=true)
     CairoMakie.Colorbar(fig[1, 1][1, 2], label = "Stress", colormap = :viridis, limits=(0,maximum(st)))
+    colsize!(fig.layout, 1, Aspect(1, 1.0))
     save(name1, fig)
-    fig = Figure()
+    fig = Figure() 
     xs = range(0,2,N2)
     ys = range(0,2,N2)
-    st = sqrt.(Ux.^2 .+ Uy.^2)
+    st = sqrt.(σx.^2 .+ σy.^2)
     ax, hm = CairoMakie.contour(fig[1, 1][1, 1], xs, ys, st, levels=0:0.2:3.2)
     CairoMakie.Colorbar(fig[1, 1][1, 2], label = "Stress", colormap = :viridis, limits=(0,maximum(st)))
+    colsize!(fig.layout, 1, Aspect(1, 1.0))
     save(name2, fig)
     println("Max vals: " * string(N))
-    display((maximum(Ux), minimum(Ux), maximum(Uy), minimum(Uy)))
+    display((maximum(σx), minimum(σx), maximum(σy), minimum(σy)))
 end
 # first plot
-plot_material_stress(Ux, Uy, 41, N, "fig81.png", "fig82.png")
+plot_material_stress(σx, σy, 41, N, "fig81.png", "fig82.png")
+
+
+fig = Figure() 
+xs = range(0,2,N)
+ys = range(0,2,N)
+st = sqrt.(σx.^2 .+ σy.^2)
+ax, hm = CairoMakie.heatmap(fig[1, 1][1, 1], xs, ys, st)
+CairoMakie.Colorbar(fig[1, 1][1, 2], label = "Stress", colormap = :viridis, limits=(0,maximum(st)))
+colsize!(fig.layout, 1, Aspect(1, 1.0))
+save("fig83.png", fig)
 
 
 # subsequent plots
 N=101; xv = range(0, 2, N); yv = range(0, 2, N)
-Ux, Uy = material_stress(N)
-plot_material_stress(Ux, Uy, 21, N, "fig91v.png", "fig91m.png")
+σx, σy = material_stress(N)
+plot_material_stress(σx, σy, 21, N, "fig91v.png", "fig91m.png")
 
 N=401; xv = range(0, 2, N); yv = range(0, 2, N)
-Ux, Uy = material_stress(N)
-plot_material_stress(Ux, Uy, 41, N, "fig92v.png", "fig92m.png")
+σx, σy = material_stress(N)
+plot_material_stress(σx, σy, 41, N, "fig92v.png", "fig92m.png")
 
 N=301; xv = range(0, 2, N); yv = range(0, 2, N)
-Ux, Uy = material_stress(N)
-plot_material_stress(Ux, Uy, 31, N, "fig93v.png", "fig93m.png")
+σx, σy = material_stress(N)
+plot_material_stress(σx, σy, 31, N, "fig93v.png", "fig93m.png")
 
 N=501; xv = range(0, 2, N); yv = range(0, 2, N)
-Ux, Uy = material_stress(N)
-plot_material_stress(Ux, Uy, 51, N, "fig94v.png", "fig94m.png")
+σx, σy = material_stress(N)
+plot_material_stress(σx, σy, 51, N, "fig94v.png", "fig94m.png")
 
 
 N=801; xv = range(0, 2, N); yv = range(0, 2, N)
-Ux, Uy = material_stress(N)
-plot_material_stress(Ux, Uy, 81, N, "fig95v.png", "fig95m.png")
+σx, σy = material_stress(N)
+plot_material_stress(σx, σy, 81, N, "fig95v.png", "fig95m.png")
 
+# for use in Part C
+N = 101
+w = optimal_SOR_parameter_asym(N)
+u_B = rotl90(SOR_method_B(N, w; maxit=N^2))
